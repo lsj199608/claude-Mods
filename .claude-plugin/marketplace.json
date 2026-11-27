@@ -1,0 +1,19 @@
+{
+  "name": "claude-mods",
+  "owner": {
+    "name": "lsj199608"
+  },
+  "description": "Claude Code mod 모음: 토큰 사용량(/tokens), 질문 목록(/questions)",
+  "plugins": [
+    {
+      "name": "token-usage",
+      "source": "./plugins/token-usage",
+      "description": "Claude 토큰 사용량·컨텍스트·사용 한도·비용을 상태 줄과 창으로 (/tokens)"
+    },
+    {
+      "name": "question-history",
+      "source": "./plugins/question-history",
+      "description": "이 세션의 질문 목록 탭 + 고른 질문의 답변 탭 (/questions)"
+    }
+  ]
+}

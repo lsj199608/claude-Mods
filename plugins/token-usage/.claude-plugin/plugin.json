@@ -1,0 +1,10 @@
+{
+  "name": "token-usage",
+  "version": "0.1.0",
+  "description": "Claude 토큰 사용량(세션·오늘·모델별), 컨텍스트 창, 사용 한도, 비용을 상태 줄과 창으로 보여 줌",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "lsj199608"
+  },
+  "license": "MIT"
+}
