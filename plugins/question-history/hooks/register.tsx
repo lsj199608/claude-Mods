@@ -195,9 +195,14 @@ export const register: Register = on => {
     const qa = list[v.index]
     if (!qa) return <Text dimColor>질문 목록 탭에서 질문을 고르세요.</Text>
 
-    const qLines = wrap(`${v.index + 1}. ${qa.question}`, cols).slice(0, 3)
-    const body = wrap(qa.answer || '(아직 답변이 없습니다)', cols)
-    const room = Math.max(3, rows - qLines.length - 3)
+    // 질문은 자르지 않는다: 질문 전체 + 구분선 + 답변을 한 덩어리로 스크롤 (긴 질문도 [아래]로 끝까지 볼 수 있게)
+    type Line = { text: string; kind: 'question' | 'rule' | 'answer' }
+    const body: Line[] = [
+      ...wrap(`${v.index + 1}. ${qa.question}`, cols).map(text => ({ text, kind: 'question' as const })),
+      { text: '─'.repeat(Math.min(cols, 60)), kind: 'rule' },
+      ...wrap(qa.answer || '(아직 답변이 없습니다)', cols).map(text => ({ text, kind: 'answer' as const })),
+    ]
+    const room = Math.max(3, rows - 2)
     const maxScroll = Math.max(0, body.length - room)
     const scroll = Math.min(v.scroll, maxScroll)
     const shown = body.slice(scroll, scroll + room)
@@ -217,13 +222,15 @@ export const register: Register = on => {
           {v.index < list.length - 1 ? <Button key="next" hotkey="n" label="다음 질문" onPress={() => go(v.index + 1)} /> : null}
           <Text dimColor>  {body.length === 0 ? 0 : scroll + 1}-{scroll + shown.length}/{body.length}줄</Text>
         </Box>
-        {qLines.map((l, i) => (
-          <Text key={`q${i}`} bold color="cyan">{l}</Text>
-        ))}
-        <Text dimColor>{'─'.repeat(Math.min(cols, 60))}</Text>
-        {shown.map((l, i) => (
-          <Text key={`a${scroll + i}`} bold={/^#{1,6} /.test(l)}>{l || ' '}</Text>
-        ))}
+        {shown.map((l, i) =>
+          l.kind === 'question' ? (
+            <Text key={`l${scroll + i}`} bold color="cyan">{l.text || ' '}</Text>
+          ) : l.kind === 'rule' ? (
+            <Text key={`l${scroll + i}`} dimColor>{l.text}</Text>
+          ) : (
+            <Text key={`l${scroll + i}`} bold={/^#{1,6} /.test(l.text)}>{l.text || ' '}</Text>
+          ),
+        )}
       </Box>
     )
   })

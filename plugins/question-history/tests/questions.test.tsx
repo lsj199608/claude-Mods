@@ -55,3 +55,42 @@ test('질문 목록과 답변', async ($, on) => {
   await answer.unmount()
   await ui.unmount()
 })
+
+// 예전에는 질문을 3줄까지만 그려 긴 질문의 뒷부분이 잘렸다 → 질문 전체가 답변과 함께 스크롤돼야 한다
+test('긴 질문도 끝까지 보인다', async ($, on) => {
+  const longQuestion = Array.from({ length: 12 }, (_, i) => `줄${i + 1} 아주 긴 질문 문장입니다`).join('\n') + '\n질문끝표시'
+  on('session.messages', () => ({
+    value: [
+      { role: 'user', text: longQuestion, toolUses: [] },
+      { role: 'assistant', text: '답변첫줄\n답변끝표시', toolUses: [] },
+    ],
+  }))
+  on('command.register', () => ({ value: { command: 'questions' } }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+
+  const narrow = { ...PANE.props, scroll: { offset: 0, bodyRows: 8 } }
+  const list = await $.ui.mount({ ...PANE, props: narrow, surface: 'terminal' })
+  await list.press({ key: 'q-0' })
+  const answer = await $.ui.mount({ ...PANE, props: narrow, requestId: 'question-answer', surface: 'terminal' })
+
+  expect(await answer.find({ type: 'Text', text: /줄1 / })).toBeDefined()
+  expect(await answer.find({ type: 'Text', text: /질문끝표시/ })).toBeUndefined() // 첫 화면엔 아직 안 보임
+
+  for (let i = 0; i < 5 && !(await answer.find({ type: 'Text', text: /답변끝표시/ })); i++) {
+    await answer.press({ key: 'down' })
+  }
+  expect(await answer.find({ type: 'Text', text: /답변끝표시/ })).toBeDefined()
+
+  await answer.press({ key: 'up' })
+  await answer.press({ key: 'up' })
+  await answer.press({ key: 'up' })
+  // 스크롤로 질문의 모든 줄을 지나며 마지막 줄까지 닿을 수 있어야 한다
+  let sawEnd = false
+  for (let i = 0; i < 6; i++) {
+    if (await answer.find({ type: 'Text', text: /질문끝표시/ })) { sawEnd = true; break }
+    await answer.press({ key: 'down' })
+  }
+  expect(sawEnd).toBe(true)
+  await answer.unmount()
+  await list.unmount()
+})

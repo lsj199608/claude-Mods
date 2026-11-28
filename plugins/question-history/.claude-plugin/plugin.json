@@ -1,6 +1,6 @@
 {
   "name": "question-history",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "이 세션에서 한 질문 목록을 보여 주고, 하나를 고르면 그 질문의 답변을 보여 줌",
   "types": "./types/index.d.ts",
   "author": {
